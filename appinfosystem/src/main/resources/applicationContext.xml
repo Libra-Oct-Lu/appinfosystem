@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<beans xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx = "http://www.springframework.org/schema/tx"
+       xmlns:context = "http://www.springframework.org/schema/context"
+       xmlns = "http://www.springframework.org/schema/beans"
+       xsi:schemaLocation = "http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+
+    <!-- 配置组件扫描 -->
+    <context:component-scan base-package = "com.appsys.service"/>
+
+    <!-- 引入外部化配置文件 -->
+    <context:property-placeholder location = "classpath:database.properties"
+                                  system-properties-mode = "NEVER"/>
+
+    <!-- 配置数据源  -->
+    <bean id = "dataSource" class = "org.apache.commons.dbcp.BasicDataSource">
+        <property name = "driverClassName" value = "${driverClass}"/>
+        <property name = "url" value = "${url}"/>
+        <property name = "username" value = "${username}"/>
+        <property name = "password" value = "${password}"/>
+    </bean>
+
+    <!-- 配置SessionFactory -->
+    <bean id = "sessionFactory" class = "org.mybatis.spring.SqlSessionFactoryBean">
+        <property name = "dataSource" ref = "dataSource"/>
+        <property name = "typeAliasesPackage" value = "com.appsys.pojo"/>
+        <property name = "mapperLocations" value = "classpath:com/appsys/mapper/*.xml"/>
+        <property name = "plugins">
+            <array>
+                <bean class = "com.github.pagehelper.PageInterceptor"/>
+            </array>
+        </property>
+    </bean>
+
+    <!-- 配置Mybatis Mapper 扫描 -->
+    <bean id = "mapperScannerConfigurer" class = "org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name = "basePackage" value = "com.appsys.mapper"/>
+        <property name = "sqlSessionFactoryBeanName" value = "sessionFactory"/>
+    </bean>
+
+    <!-- 配置事务管理器 -->
+    <bean id = "transactionManager" class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name = "dataSource" ref = "dataSource"/>
+    </bean>
+
+    <!-- 注解事务 -->
+    <tx:annotation-driven transaction-manager = "transactionManager"/>
+
+</beans>
